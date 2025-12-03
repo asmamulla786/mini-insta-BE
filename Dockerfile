@@ -1,0 +1,12 @@
+# Step 1: Build the JAR using Gradle
+FROM gradle:8.2.1-jdk17 AS build
+WORKDIR /app
+COPY . .
+RUN gradle bootJar --no-daemon
+
+# Step 2: Run the jar using a lightweight JRE
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]
