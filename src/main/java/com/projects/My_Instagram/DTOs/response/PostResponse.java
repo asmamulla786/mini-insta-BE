@@ -1,15 +1,7 @@
 package com.projects.My_Instagram.DTOs.response;
 
-import com.projects.My_Instagram.models.Post;
-import com.projects.My_Instagram.models.User;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class PostResponse{
     private Long id;
@@ -67,5 +59,4 @@ public class PostResponse{
     }
 
     private UserResponse user;
-
 }

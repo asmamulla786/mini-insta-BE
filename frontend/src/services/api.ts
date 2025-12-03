@@ -3,6 +3,7 @@ import type {
   AuthResponse,
   Comment,
   CommentPayload,
+  FeedItem,
   FollowRequest,
   LoginPayload,
   Post,
@@ -66,5 +67,9 @@ export const FollowApi = {
     apiClient.patch(`/users/follow/${username}/accept`),
   reject: (username: string) =>
     apiClient.patch(`/users/follow/${username}/reject`)
+};
+
+export const FeedApi = {
+  list: () => unwrap<FeedItem[]>(apiClient.get('/feed'))
 };
 

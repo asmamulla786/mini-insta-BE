@@ -4,8 +4,10 @@ import type { FollowRequest, User } from '../types/api';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { useAuth } from '../hooks/useAuth';
 
 export const ConnectionsPage = () => {
+  const { user } = useAuth();
   const [followers, setFollowers] = useState<User[]>([]);
   const [following, setFollowing] = useState<User[]>([]);
   const [requests, setRequests] = useState<FollowRequest[]>([]);
@@ -117,7 +119,11 @@ export const ConnectionsPage = () => {
           description="Fetching followers, following, and requests."
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-3">
+        <div
+          className={`grid gap-6 ${
+            user?.privateAccount ? 'md:grid-cols-3' : 'md:grid-cols-2'
+          }`}
+        >
           <section className="glass-panel p-6">
             <h2 className="text-lg font-semibold text-white">Followers</h2>
             {followers.length ? (
@@ -167,42 +173,50 @@ export const ConnectionsPage = () => {
             )}
           </section>
 
-          <section className="glass-panel p-6">
-            <h2 className="text-lg font-semibold text-white">Follow requests</h2>
-            {requests.length ? (
-              <ul className="mt-4 space-y-3 text-sm text-slate-200">
-                {requests.map((request) => (
-                  <li
-                    key={`${request.username}-${request.requestedAt}`}
-                    className="space-y-2 rounded-xl border border-slate-800 px-3 py-2"
-                  >
-                    <p className="font-semibold">@{request.username}</p>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        className="flex-1"
-                        onClick={() => handleFollowRequest(request.username, 'accept')}
-                      >
-                        Accept
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="flex-1"
-                        onClick={() => handleFollowRequest(request.username, 'reject')}
-                      >
-                        Reject
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-4 text-sm text-slate-500">
-                No pending requests right now.
-              </p>
-            )}
-          </section>
+          {user?.privateAccount && (
+            <section className="glass-panel p-6">
+              <h2 className="text-lg font-semibold text-white">
+                Follow requests
+              </h2>
+              {requests.length ? (
+                <ul className="mt-4 space-y-3 text-sm text-slate-200">
+                  {requests.map((request) => (
+                    <li
+                      key={`${request.username}-${request.requestedAt}`}
+                      className="space-y-2 rounded-xl border border-slate-800 px-3 py-2"
+                    >
+                      <p className="font-semibold">@{request.username}</p>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          className="flex-1"
+                          onClick={() =>
+                            handleFollowRequest(request.username, 'accept')
+                          }
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="flex-1"
+                          onClick={() =>
+                            handleFollowRequest(request.username, 'reject')
+                          }
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-4 text-sm text-slate-500">
+                  No pending requests right now.
+                </p>
+              )}
+            </section>
+          )}
         </div>
       )}
     </div>

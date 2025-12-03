@@ -61,6 +61,18 @@ export type FollowRequest = {
   requestedAt: string;
 };
 
+export type FeedItem = {
+  postId: number;
+  caption: string;
+  uploadedAt: string;
+  imageUrl: string;
+  username: string;
+  profilePicUrl?: string;
+  noOfLikes: number;
+  noOfComments: number;
+  likedByYou: boolean;
+};
+
 export type ApiError = {
   message: string;
   status?: number;

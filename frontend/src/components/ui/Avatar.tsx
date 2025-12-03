@@ -1,3 +1,6 @@
+import type React from 'react';
+import { useState } from 'react';
+
 type AvatarProps = {
   name: string;
   src?: string;
@@ -11,18 +14,19 @@ const sizeMap: Record<Required<AvatarProps>['size'], string> = {
 };
 
 export const Avatar = ({ name, src, size = 'md' }: AvatarProps) => {
-  const initials = name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  const [hasError, setHasError] = useState(false);
 
-  if (src) {
+  const handleError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    event.currentTarget.onerror = null;
+    setHasError(true);
+  };
+
+  if (src && !hasError) {
     return (
       <img
         src={src}
         alt={name}
+        onError={handleError}
         className={`${sizeMap[size]} rounded-full object-cover`}
       />
     );
@@ -30,10 +34,10 @@ export const Avatar = ({ name, src, size = 'md' }: AvatarProps) => {
 
   return (
     <div
-      className={`${sizeMap[size]} rounded-full bg-slate-800 text-center font-semibold leading-[inherit] text-white`}
+      className={`${sizeMap[size]} rounded-full bg-slate-800 text-center leading-[inherit] text-white`}
     >
       <span className="flex h-full w-full items-center justify-center">
-        {initials}
+        👤
       </span>
     </div>
   );

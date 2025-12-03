@@ -9,6 +9,7 @@ import { ConnectionsPage } from '../pages/ConnectionsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { AppLayout } from '../components/layout/AppLayout';
 import { UserDetailPage } from '../pages/UserDetailPage';
+import { FeedPage } from '../pages/FeedPage';
 
 const AppRoutes = () => (
   <Routes>
@@ -19,7 +20,8 @@ const AppRoutes = () => (
 
     <Route element={<ProtectedRoute />}>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/" element={<FeedPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/users/:username" element={<UserDetailPage />} />

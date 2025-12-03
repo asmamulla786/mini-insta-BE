@@ -49,7 +49,7 @@ export const DashboardPage = () => {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            Dashboard
+            My posts
           </p>
           <h1 className="text-3xl font-semibold text-white">
             Share moments with followers

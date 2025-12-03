@@ -1,46 +1,35 @@
-import { FormEvent, useCallback, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { Comment, Post } from '../../types/api';
+import type { Comment, FeedItem } from '../../types/api';
 import { Avatar } from '../ui/Avatar';
-import { Button } from '../ui/Button';
-import { PostApi, CommentApi } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
 import { formatDateTime } from '../../utils/format';
+import { Button } from '../ui/Button';
+import { CommentApi, PostApi } from '../../services/api';
 
-type PostCardProps = {
-  post: Post;
-  onRefresh: () => Promise<void> | void;
+type FeedCardProps = {
+  item: FeedItem;
+  onUpdated?: () => Promise<void> | void;
 };
 
-export const PostCard = ({ post, onRefresh }: PostCardProps) => {
-  const { user } = useAuth();
+export const FeedCard = ({ item, onUpdated }: FeedCardProps) => {
+  const [liked, setLiked] = useState(item.likedByYou);
+  const [likeCount, setLikeCount] = useState(item.noOfLikes);
   const [isProcessingLike, setIsProcessingLike] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [commentInput, setCommentInput] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
+  const [commentInput, setCommentInput] = useState('');
   const [commentError, setCommentError] = useState('');
-
-  const hasLiked = useMemo(() => {
-    if (!user) return false;
-    return post.likedUsers.includes(user.username);
-  }, [post.likedUsers, user]);
-
-  const canDelete = useMemo(
-    () => !!user && user.id === post.user.id,
-    [user, post.user.id]
-  );
 
   const fetchComments = useCallback(async () => {
     setLoadingComments(true);
     try {
-      const data = await CommentApi.listByPost(post.id);
+      const data = await CommentApi.listByPost(item.postId);
       setComments(data);
     } finally {
       setLoadingComments(false);
     }
-  }, [post.id]);
+  }, [item.postId]);
 
   const toggleComments = async () => {
     const nextState = !commentsOpen;
@@ -54,25 +43,20 @@ export const PostCard = ({ post, onRefresh }: PostCardProps) => {
     if (isProcessingLike) return;
     setIsProcessingLike(true);
     try {
-      if (hasLiked) {
-        await PostApi.unlike(post.id);
+      if (liked) {
+        await PostApi.unlike(item.postId);
+        setLiked(false);
+        setLikeCount((prev) => Math.max(prev - 1, 0));
       } else {
-        await PostApi.like(post.id);
+        await PostApi.like(item.postId);
+        setLiked(true);
+        setLikeCount((prev) => prev + 1);
       }
-      await onRefresh();
+      if (onUpdated) {
+        await onUpdated();
+      }
     } finally {
       setIsProcessingLike(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!canDelete || isDeleting) return;
-    setIsDeleting(true);
-    try {
-      await PostApi.delete(post.id);
-      await onRefresh();
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -84,70 +68,52 @@ export const PostCard = ({ post, onRefresh }: PostCardProps) => {
       return;
     }
     try {
-      await CommentApi.create(post.id, { content: commentInput });
+      await CommentApi.create(item.postId, { content: commentInput });
       setCommentInput('');
       await fetchComments();
-    } catch (error) {
+    } catch {
       setCommentError('Unable to add comment. Please try again.');
     }
   };
 
   return (
     <article className="glass-panel overflow-hidden shadow-xl">
-      <div className="flex items-center justify-between px-6 py-4">
-        <Link
-          to={`/users/${post.user.username}`}
-          className="flex items-center gap-3 hover:bg-slate-900/70 -mx-3 px-3 py-2 rounded-full"
-        >
-          <Avatar
-            name={post.user.username}
-            src={post.user.profilePicUrl}
-            size="sm"
-          />
-          <div>
-            <p className="text-sm font-semibold text-white">
-              {post.user.username}
-            </p>
-          </div>
-        </Link>
-        <div className="flex items-center gap-3 text-xs text-slate-500">
-          <span>{formatDateTime(post.uploadedAt)}</span>
-          {canDelete && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="rounded-full border border-slate-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-300 hover:bg-red-500 hover:text-white hover:border-red-500 disabled:opacity-50"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </button>
-          )}
+      <Link
+        to={`/users/${item.username}`}
+        className="flex items-center gap-3 px-6 py-4 hover:bg-slate-900/70"
+      >
+        <Avatar name={item.username} src={item.profilePicUrl} size="sm" />
+        <div>
+          <p className="text-sm font-semibold text-white">{item.username}</p>
         </div>
-      </div>
+        <span className="ml-auto text-xs text-slate-500">
+          {formatDateTime(item.uploadedAt)}
+        </span>
+      </Link>
       <div className="space-y-4">
-        <p className="px-6 text-base text-white">{post.caption}</p>
-        {post.imageUrl && (
+        <p className="px-6 text-base text-white">{item.caption}</p>
+        {item.imageUrl && (
           <img
-            src={post.imageUrl}
-            alt={post.caption}
+            src={item.imageUrl}
+            alt={item.caption}
             className="max-h-[520px] w-full object-cover"
           />
         )}
       </div>
-      <div className="px-6 py-4">
-        <div className="flex items-center gap-3 text-sm text-slate-400">
+      <div className="px-6 py-4 text-sm text-slate-400">
+        <div className="flex items-center gap-3">
           <button
             onClick={handleLikeToggle}
             className={`rounded-full border border-slate-800 px-3 py-1 text-xs font-semibold uppercase tracking-wide transition ${
-              hasLiked
+              liked
                 ? 'bg-brand/20 text-brand'
                 : 'bg-slate-900 text-slate-300'
             }`}
             disabled={isProcessingLike}
           >
-            {hasLiked ? 'Liked' : 'Like'}
+            {liked ? 'Liked' : 'Like'}
           </button>
-          <span>{post.likedUsers.length} likes</span>
+          <span>{likeCount} likes</span>
           <button
             onClick={toggleComments}
             className="text-xs uppercase tracking-wide text-slate-400 hover:text-white"
@@ -155,7 +121,6 @@ export const PostCard = ({ post, onRefresh }: PostCardProps) => {
             {commentsOpen ? 'Hide comments' : 'View comments'}
           </button>
         </div>
-
         {commentsOpen && (
           <div className="mt-4 space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
             {loadingComments ? (

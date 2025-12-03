@@ -1,5 +1,7 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { useState, FormEvent } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 import { useAuth } from '../../hooks/useAuth';
 
 const navLinks = [
@@ -10,6 +12,16 @@ const navLinks = [
 
 export const AppLayout = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [searchUsername, setSearchUsername] = useState('');
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = searchUsername.trim();
+    if (!value) return;
+    setSearchUsername('');
+    navigate(`/users/${value}`);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -34,6 +46,18 @@ export const AppLayout = () => {
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="hidden md:block"
+            >
+              <Input
+                name="search"
+                placeholder="Search username"
+                value={searchUsername}
+                onChange={(e) => setSearchUsername(e.target.value)}
+                className="h-8 w-44 bg-slate-900/80 text-xs"
+              />
+            </form>
             {user && (
               <div className="text-right text-xs">
                 <p className="font-semibold text-white">{user.fullName}</p>
