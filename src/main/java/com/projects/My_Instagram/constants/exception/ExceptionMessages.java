@@ -8,6 +8,7 @@ public enum ExceptionMessages {
     PASS_WORD_NUll("Password is mandatory"),
     UNAUTHORIZED("Access denied: You do not have permission to delete this."),
     COMMENT_NOT_FOUND("Comment not found"),
+    CHAT_NOT_FOUND("Chat not found"),
 
     //Like / Unlike
 
