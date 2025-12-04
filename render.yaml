@@ -3,5 +3,3 @@ services:
     name: mini-insta-be
     env: docker
     plan: free
-    buildCommand: "./gradlew build -x test"
-    dockerCommand: "java -jar /app/app.jar"
